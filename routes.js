@@ -11,6 +11,8 @@ var gravatar = require('gravatar');
 
 module.exports = function(app,io){
 
+	var keys;
+
 	app.get('/', function(req, res){
 
 		// Render views/home.html
@@ -107,6 +109,16 @@ module.exports = function(app,io){
 			else {
 				socket.emit('tooMany', {boolean: true});
 			}
+		});
+
+		socket.on('key1',function(data){
+			key[0] = data.key;
+		});
+		socket.on('key2',function(data){
+			key[1] = data.key;
+			socket.broadcast.to(this.room).emit('key1', { key: keys[1]});
+			socket.broadcast.to(this.room).emit('key2', { key: keys[0]});
+
 		});
 
 		// Somebody left the chat

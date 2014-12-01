@@ -5,6 +5,11 @@ $(function(){
 	// getting the id of the room from the url
 	var id = Number(window.location.pathname.match(/\/chat\/(\d+)$/)[1]);
 
+	var rsa = forge.pki.rsa;
+	var keypair = rsa.generateKeyPair({bits: 2048, e: 0x10001});
+
+	var roomKey;
+
 	// connect to the socket
 	var socket = io.connect('/socket');
 
@@ -84,7 +89,9 @@ $(function(){
 
 					// call the server-side function 'login' and send user's parameters
 					socket.emit('login', {user: name, avatar: email, id: id});
+					socket.emit('key1',{key: keypair.getPublicKeyFingerprint()});
 				}
+
 			
 			});
 		}
@@ -115,6 +122,7 @@ $(function(){
 				}
 				else {
 					socket.emit('login', {user: name, avatar: email, id: id});
+					socket.emit('key2',{key: keypair.publicKey});
 				}
 
 			});
@@ -126,7 +134,19 @@ $(function(){
 
 	});
 
-	// Other useful 
+	// Other useful
+	socket.on('key1',function(data){
+		if(data.number == yourName.val())
+		{
+			roomKey = data.key;
+		}
+	});
+	socket.on('key2',function(data){
+		if(data.number == hisName.val())
+		{
+			roomKey = data.key;
+		}
+	});
 
 	socket.on('startChat', function(data){
 		console.log(data);
@@ -170,7 +190,7 @@ $(function(){
 		showMessage('chatStarted');
 
 		if(data.msg.trim().length) {
-			createChatMessage(data.msg, data.user, data.img, moment());
+			createChatMessage(keypair.privateKey.decrypt(data.msg).toString(), data.user, data.img, moment());
 			scrollToBottom();
 		}
 	});
@@ -199,7 +219,7 @@ $(function(){
 			scrollToBottom();
 
 			// Send the message to the other person in the chat
-			socket.emit('msg', {msg: textarea.val(), user: name, img: img});
+			socket.emit('msg', {msg: keypair.publicKey.encrypt(textarea.val().toByteArray()), user: name, img: img});
 
 		}
 		// Empty the textarea
