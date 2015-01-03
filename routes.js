@@ -11,7 +11,7 @@ var gravatar = require('gravatar');
 
 module.exports = function(app,io){
 
-	var keys;
+	var keys = new Array();
 
 	app.get('/', function(req, res){
 
@@ -112,10 +112,10 @@ module.exports = function(app,io){
 		});
 
 		socket.on('key1',function(data){
-			key[0] = data.key;
+			keys[0] = data.key;
 		});
 		socket.on('key2',function(data){
-			key[1] = data.key;
+			keys[1] = data.key;
 			socket.broadcast.to(this.room).emit('key1', { key: keys[1]});
 			socket.broadcast.to(this.room).emit('key2', { key: keys[0]});
 
@@ -144,6 +144,7 @@ module.exports = function(app,io){
 
 			// When the server receives a message, it sends it to the other person in the room.
 			socket.broadcast.to(socket.room).emit('receive', {msg: data.msg, user: data.user, img: data.img});
+			console.log(data.msg);
 		});
 	});
 };

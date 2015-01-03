@@ -4,9 +4,16 @@ $(function(){
 
 	// getting the id of the room from the url
 	var id = Number(window.location.pathname.match(/\/chat\/(\d+)$/)[1]);
+	var PassPhrase = "" + Math.random().toString() + "" + Math.random().toString() + "" + Math.random().toString() +"" + Math.random().toString() + "" + Math.random().toString() + ""+ Math.random().toString() + "" ;
 
-	var rsa = forge.pki.rsa;
-	var keypair = rsa.generateKeyPair({bits: 2048, e: 0x10001});
+
+
+	var myRSAkey = cryptico.generateRSAKey(PassPhrase, 512);
+	var PublicKeyString = cryptico.publicKeyString(myRSAkey);
+
+	//console.log(PassPhrase);
+	//console.log(myRSAkey);
+	//console.log(PublicKeyString);
 
 	var roomKey;
 
@@ -89,7 +96,7 @@ $(function(){
 
 					// call the server-side function 'login' and send user's parameters
 					socket.emit('login', {user: name, avatar: email, id: id});
-					socket.emit('key1',{key: keypair.getPublicKeyFingerprint()});
+					socket.emit('key1',{key: PublicKeyString});
 				}
 
 			
@@ -122,7 +129,7 @@ $(function(){
 				}
 				else {
 					socket.emit('login', {user: name, avatar: email, id: id});
-					socket.emit('key2',{key: keypair.publicKey});
+					socket.emit('key2',{key: PublicKeyString});
 				}
 
 			});
@@ -190,7 +197,10 @@ $(function(){
 		showMessage('chatStarted');
 
 		if(data.msg.trim().length) {
-			createChatMessage(keypair.privateKey.decrypt(data.msg).toString(), data.user, data.img, moment());
+			console.log(data.msg);
+			console.log(cryptico.decrypt(data.msg, myRSAkey));
+
+			createChatMessage(cryptico.decrypt(data.msg, myRSAkey).plaintext, data.user, data.img, moment());
 			scrollToBottom();
 		}
 	});
@@ -219,8 +229,9 @@ $(function(){
 			scrollToBottom();
 
 			// Send the message to the other person in the chat
-			socket.emit('msg', {msg: keypair.publicKey.encrypt(textarea.val().toByteArray()), user: name, img: img});
-
+			socket.emit('msg', {msg: cryptico.encrypt(textarea.val(),PublicKeyString).cipher, user: name, img: img});
+			console.log(cryptico.encrypt(textarea.val(),PublicKeyString).cipher);
+			console.log(typeof cryptico.encrypt(textarea.val(),PublicKeyString).cipher);
 		}
 		// Empty the textarea
 		textarea.val("");
