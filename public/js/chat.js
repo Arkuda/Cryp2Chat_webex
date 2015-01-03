@@ -10,6 +10,7 @@ $(function(){
 
 	var myRSAkey = cryptico.generateRSAKey(PassPhrase, 512);
 	var PublicKeyString = cryptico.publicKeyString(myRSAkey);
+	console.log(PublicKeyString);
 
 	//console.log(PassPhrase);
 	//console.log(myRSAkey);
@@ -142,18 +143,21 @@ $(function(){
 	});
 
 	// Other useful
-	socket.on('key1',function(data){
+	socket.on('key',function(data){
+		console.log(data);
+		console.log(yourName.val());
+		console.log(hisName.val());
 		if(data.number == yourName.val())
 		{
-			roomKey = data.key;
-		}
-	});
-	socket.on('key2',function(data){
-		if(data.number == hisName.val())
+			console.log("roomKey" + roomKey);
+			roomKey = data.key1;
+		} else if(data.number == hisName.val())
 		{
-			roomKey = data.key;
+			console.log("roomKey" + roomKey);
+			roomKey = data.key2;
 		}
 	});
+
 
 	socket.on('startChat', function(data){
 		console.log(data);
@@ -196,13 +200,13 @@ $(function(){
 
 		showMessage('chatStarted');
 
-		if(data.msg.trim().length) {
-			console.log(data.msg);
-			console.log(cryptico.decrypt(data.msg, myRSAkey));
 
-			createChatMessage(cryptico.decrypt(data.msg, myRSAkey).plaintext, data.user, data.img, moment());
+			console.log(data.msg);
+			console.log(cryptico.decrypt(data.msg.cipher, myRSAkey));
+
+			createChatMessage(cryptico.decrypt(data.msg.cipher, myRSAkey).plaintext, data.user, data.img, moment());
 			scrollToBottom();
-		}
+
 	});
 
 	textarea.keypress(function(e){
@@ -227,11 +231,11 @@ $(function(){
 		if(textarea.val().trim().length) {
 			createChatMessage(textarea.val(), name, img, moment());
 			scrollToBottom();
-
+			console.log(roomKey);
+			var msgs = cryptico.encrypt(textarea.val(),roomKey);
 			// Send the message to the other person in the chat
-			socket.emit('msg', {msg: cryptico.encrypt(textarea.val(),PublicKeyString).cipher, user: name, img: img});
-			console.log(cryptico.encrypt(textarea.val(),PublicKeyString).cipher);
-			console.log(typeof cryptico.encrypt(textarea.val(),PublicKeyString).cipher);
+			socket.emit('msg', {msg: msgs, user: name, img: img});
+			console.log(msgs);
 		}
 		// Empty the textarea
 		textarea.val("");

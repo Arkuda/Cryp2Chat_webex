@@ -109,15 +109,16 @@ module.exports = function(app,io){
 			else {
 				socket.emit('tooMany', {boolean: true});
 			}
-		});
+	});
 
 		socket.on('key1',function(data){
 			keys[0] = data.key;
 		});
 		socket.on('key2',function(data){
 			keys[1] = data.key;
-			socket.broadcast.to(this.room).emit('key1', { key: keys[1]});
-			socket.broadcast.to(this.room).emit('key2', { key: keys[0]});
+			//var room = findClientsSocket(io, data.id, '/socket');
+			chat.emit('key', { key1: keys[1], key2: keys[0], stats: "ok"});
+
 
 		});
 
