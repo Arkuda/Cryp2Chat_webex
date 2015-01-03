@@ -5,7 +5,7 @@ $(function(){
 	// getting the id of the room from the url
 	var id = Number(window.location.pathname.match(/\/chat\/(\d+)$/)[1]);
 	var PassPhrase = "" + Math.random().toString() + "" + Math.random().toString() + "" + Math.random().toString() +"" + Math.random().toString() + "" + Math.random().toString() + ""+ Math.random().toString() + "" ;
-
+    var myId = 1;
 
 
 	var myRSAkey = cryptico.generateRSAKey(PassPhrase, 512);
@@ -106,6 +106,7 @@ $(function(){
 
 		else if(data.number === 1) {
 
+
 			showMessage("personinchat",data);
 
 			loginForm.on('submit', function(e){
@@ -124,6 +125,7 @@ $(function(){
 					return;
 				}
 				email = hisEmail.val();
+				myId = 2;
 
 				if(!isValid(email)){
 					alert("Wrong e-mail format!");
@@ -147,11 +149,11 @@ $(function(){
 		console.log(data);
 		console.log(yourName.val());
 		console.log(hisName.val());
-		if(data.number == yourName.val())
+		if(myId == 1)
 		{
 			console.log("roomKey" + roomKey);
 			roomKey = data.key1;
-		} else if(data.number == hisName.val())
+		} else
 		{
 			console.log("roomKey" + roomKey);
 			roomKey = data.key2;
